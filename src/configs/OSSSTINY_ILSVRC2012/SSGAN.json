@@ -1,7 +1,7 @@
 {
     "data_processing":{ 
       "dataset_name": "tiny_imagenet",
-      "data_path": "./data/TINY_ILSVRC2012",
+      "data_path": "./data/OSSSTINY_ILSVRC2012",
       "img_size": 64,
       "num_classes": 50,
       "batch_size4prcsing": 256,
