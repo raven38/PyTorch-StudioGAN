@@ -3,7 +3,7 @@
       "dataset_name": "tiny_imagenet",
       "data_path": "./data/OSSSTINY_ILSVRC2012_100_095",
       "img_size": 64,
-      "num_classes": 50,
+      "num_classes": 100,
       "batch_size4prcsing": 256,
       "chunk_size": 500,
       "compression": false
