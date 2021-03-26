@@ -85,3 +85,5 @@ if __name__ == '__main__':
 
     if args.subset_class != -1:
         _ = make_subset_hdf5(model_configs['data_processing'], train_configs, mode="eval", subset_class=args.subset_class)
+    else:
+        _ = make_hdf5(model_configs['data_processing'], train_configs, mode="eval")
