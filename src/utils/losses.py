@@ -314,7 +314,7 @@ def calc_derv(inputs, labels, netD, conditional_strategy, device, netG=None):
         _, _, dis_out_fake = netD(fake_images, labels)
     elif conditional_strategy in ['ProjGAN', 'no']:
         dis_out_fake = netD(fake_images, labels)
-    elif conditional_strategy in ['ACGAN' 'SSGAN']:
+    elif conditional_strategy in ['ACGAN', 'SSGAN']:
         _, dis_out_fake = netD(fake_images, labels)
     else:
         raise NotImplementedError
