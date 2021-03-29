@@ -33,7 +33,8 @@ from torch.nn import DataParallel
 from torch.nn.parallel import DistributedDataParallel
 from torchvision.utils import save_image
 
-
+import matplotlib
+matplotlib.use('Agg')
 
 class dummy_context_mgr():
     def __enter__(self):
