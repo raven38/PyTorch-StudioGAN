@@ -283,6 +283,8 @@ class make_worker(object):
                             if self.conditional_strategy == "ACGAN":
                                 cls_out_real_aug, dis_out_real_aug = self.dis_model(real_images_aug, real_labels)
                                 cls_consistency_loss = self.l2_loss(cls_out_real, cls_out_real_aug)
+                            elif self.conditional_strategy == "SSGAN":
+                                _, dis_out_real_aug = self.dis_model(real_images_aug, real_labels)
                             elif self.conditional_strategy == "ProjGAN" or self.conditional_strategy == "no":
                                 dis_out_real_aug = self.dis_model(real_images_aug, real_labels)
                             elif self.conditional_strategy in ["NT_Xent_GAN", "Proxy_NCA_GAN", "ContraGAN"]:
@@ -304,6 +306,9 @@ class make_worker(object):
                                 cls_out_fake_aug, dis_out_fake_aug = self.dis_model(fake_images_aug, fake_labels)
                                 cls_bcr_real_loss = self.l2_loss(cls_out_real, cls_out_real_aug)
                                 cls_bcr_fake_loss = self.l2_loss(cls_out_fake, cls_out_fake_aug)
+                            elif self.conditional_strategy == "SSGAN":
+                                _, dis_out_real_aug = self.dis_model(real_images_aug, real_labels)
+                                _, dis_out_fake_aug = self.dis_model(fake_images_aug, fake_labels)
                             elif self.conditional_strategy == "ProjGAN" or self.conditional_strategy == "no":
                                 dis_out_real_aug = self.dis_model(real_images_aug, real_labels)
                                 dis_out_fake_aug = self.dis_model(fake_images_aug, fake_labels)
