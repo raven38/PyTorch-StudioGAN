@@ -33,7 +33,7 @@ class RandomCropLongEdge(object):
             else np.random.randint(low=0,high=img.size[0] - size[0]))
         j = (0 if size[1] == img.size[1]
             else np.random.randint(low=0,high=img.size[1] - size[1]))
-        return transforms.functional.crop(img, i, j, size[0], size[1])
+        return transforms.functional.crop(img, j, i, size[0], size[1])
 
     def __repr__(self):
         return self.__class__.__name__
@@ -68,7 +68,7 @@ class LoadDataset(Dataset):
         if self.hdf5_path is None:
             if self.dataset_name in ['cifar10', 'tiny_imagenet']:
                 self.transforms = []
-            elif self.dataset_name in ['imagenet', 'custom']:
+            else:
                 if train:
                     self.transforms = [RandomCropLongEdge(), transforms.Resize(self.resize_size)]
                 else:
@@ -98,13 +98,10 @@ class LoadDataset(Dataset):
                                 train=self.train,
                                 download=self.download)
 
-        elif self.dataset_name in ['imagenet', 'tiny_imagenet', 'custom']:
+        else:
             mode = 'train' if self.train == True else 'valid'
             root = os.path.join(self.data_path, mode)
             self.data = ImageFolder(root=root)
-
-        else:
-            raise NotImplementedError
 
 
     def __len__(self):

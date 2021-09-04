@@ -20,7 +20,7 @@ from metrics.IS import calculate_incep_score
 from metrics.FID import calculate_fid_score
 from metrics.F_beta import calculate_f_beta_score
 from metrics.Accuracy import calculate_accuracy
-from utils.ada import augment
+from utils.ada import ADAugment
 from utils.biggan_utils import interp
 from utils.sample import sample_latents, sample_1hot, make_mask, target_class_sampler
 from utils.misc import *
@@ -54,12 +54,14 @@ LOG_FORMAT = (
 
 
 class make_worker(object):
-    def __init__(self, cfgs, run_name, best_step, logger, writer, n_gpus, gen_model, dis_model, inception_model, Gen_copy,
-                 Gen_ema, train_dataset, eval_dataset, train_dataloader, eval_dataloader, G_optimizer, D_optimizer, G_loss,
-                 D_loss, prev_ada_p, global_rank, local_rank, bn_stat_OnTheFly, checkpoint_dir, mu, sigma, best_fid,
-                 best_fid_checkpoint_path):
+    def __init__(self, cfgs, train_configs, model_configs, run_name, best_step, logger, writer, n_gpus, gen_model, dis_model,
+                 inception_model, Gen_copy, Gen_ema, train_dataset, eval_dataset, train_dataloader, eval_dataloader, G_optimizer,
+                 D_optimizer, G_loss, D_loss, prev_ada_p, global_rank, local_rank, bn_stat_OnTheFly, checkpoint_dir, mu, sigma,
+                 best_fid, best_fid_checkpoint_path):
 
         self.cfgs = cfgs
+        self.train_configs = train_configs
+        self.model_configs = model_configs
         self.run_name = run_name
         self.best_step = best_step
         self.seed = cfgs.seed
@@ -173,6 +175,7 @@ class make_worker(object):
                 self.embedding_layer = self.dis_model.embedding
 
         if self.conditional_strategy == 'ContraGAN':
+            self.mask_negatives=True
             self.contrastive_criterion = Conditional_Contrastive_loss(self.local_rank, self.batch_size, self.pos_collected_numerator)
         elif self.conditional_strategy == 'Proxy_NCA_GAN':
             self.NCA_criterion = Proxy_NCA_loss(self.local_rank, self.embedding_layer, self.num_classes, self.batch_size)
@@ -187,11 +190,9 @@ class make_worker(object):
             self.num_eval = {'train':50000, 'valid':10000}
         elif self.dataset_name == "cifar10":
             self.num_eval = {'train':50000, 'test':10000}
-        elif self.dataset_name == "custom":
+        else:
             num_train_images, num_eval_images = len(self.train_dataset.data), len(self.eval_dataset.data)
             self.num_eval = {'train':num_train_images, 'valid':num_eval_images}
-        else:
-            raise NotImplementedError
 
 
     ################################################################################################################################
@@ -225,13 +226,13 @@ class make_worker(object):
                         if self.diff_aug:
                             real_images = DiffAugment(real_images, policy=self.policy)
                         if self.ada:
-                            real_images, _ = augment(real_images, self.ada_aug_p)
+                            real_images, _ = ADAugment(real_images, self.ada_aug_p)
 
                         if self.zcr:
-                            zs, fake_labels, zs_t = sample_latents(self.prior, self.batch_size, self.z_dim, 1, self.num_classes,
+                            zs, fake_labels, zs_t = sample_latents(self.prior, self.batch_size, self.z_dim, -1.0, self.num_classes,
                                                                    self.sigma_noise, self.local_rank)
                         else:
-                            zs, fake_labels = sample_latents(self.prior, self.batch_size, self.z_dim, 1, self.num_classes,
+                            zs, fake_labels = sample_latents(self.prior, self.batch_size, self.z_dim, -1.0, self.num_classes,
                                                              None, self.local_rank)
                         if self.latent_op:
                             zs = latent_optimise(zs, fake_labels, self.gen_model, self.dis_model, self.conditional_strategy,
@@ -242,7 +243,7 @@ class make_worker(object):
                         if self.diff_aug:
                             fake_images = DiffAugment(fake_images, policy=self.policy)
                         if self.ada:
-                            fake_images, _ = augment(fake_images, self.ada_aug_p)
+                            fake_images, _ = ADAugment(fake_images, self.ada_aug_p)
 
                         if self.conditional_strategy in ["ACGAN"]:
                             cls_out_real, dis_out_real = self.dis_model(real_images, real_labels)
@@ -272,7 +273,7 @@ class make_worker(object):
                         elif self.conditional_strategy == "Proxy_NCA_GAN":
                             dis_acml_loss += self.contrastive_lambda*self.NCA_criterion(cls_embed_real, cls_proxies_real, real_labels)
                         elif self.conditional_strategy == "ContraGAN":
-                            real_cls_mask = make_mask(real_labels, self.num_classes, self.local_rank)
+                            real_cls_mask = make_mask(real_labels, self.num_classes, mask_negatives=self.mask_negatives, device=self.local_rank)
                             dis_acml_loss += self.contrastive_lambda*self.contrastive_criterion(cls_embed_real, cls_proxies_real,
                                                                                                 real_cls_mask, real_labels, t, self.margin)
                         else:
@@ -386,10 +387,10 @@ class make_worker(object):
                 for acml_step in range(self.accumulation_steps):
                     with torch.cuda.amp.autocast() if self.mixed_precision else dummy_context_mgr() as mpc:
                         if self.zcr:
-                            zs, fake_labels, zs_t = sample_latents(self.prior, self.batch_size, self.z_dim, 1, self.num_classes,
+                            zs, fake_labels, zs_t = sample_latents(self.prior, self.batch_size, self.z_dim, -1.0, self.num_classes,
                                                                    self.sigma_noise, self.local_rank)
                         else:
-                            zs, fake_labels = sample_latents(self.prior, self.batch_size, self.z_dim, 1, self.num_classes,
+                            zs, fake_labels = sample_latents(self.prior, self.batch_size, self.z_dim, -1.0, self.num_classes,
                                                              None, self.local_rank)
                         if self.latent_op:
                             zs, transport_cost = latent_optimise(zs, fake_labels, self.gen_model, self.dis_model, self.conditional_strategy,
@@ -400,7 +401,7 @@ class make_worker(object):
                         if self.diff_aug:
                             fake_images = DiffAugment(fake_images, policy=self.policy)
                         if self.ada:
-                            fake_images, _ = augment(fake_images, self.ada_aug_p)
+                            fake_images, _ = ADAugment(fake_images, self.ada_aug_p)
 
                         if self.conditional_strategy in ["ACGAN"]:
                             cls_out_fake, dis_out_fake = self.dis_model(fake_images, fake_labels)
@@ -409,7 +410,7 @@ class make_worker(object):
                         elif self.conditional_strategy == "ProjGAN" or self.conditional_strategy == "no":
                             dis_out_fake = self.dis_model(fake_images, fake_labels)
                         elif self.conditional_strategy in ["NT_Xent_GAN", "Proxy_NCA_GAN", "ContraGAN"]:
-                            fake_cls_mask = make_mask(fake_labels, self.num_classes, self.local_rank)
+                            fake_cls_mask = make_mask(fake_labels, self.num_classes, mask_negatives=self.mask_negatives, device=self.local_rank)
                             cls_proxies_fake, cls_embed_fake, dis_out_fake = self.dis_model(fake_images, fake_labels)
                         else:
                             raise NotImplementedError
@@ -680,16 +681,16 @@ class make_worker(object):
                                               self.prior, self.batch_size, self.z_dim, self.num_classes, self.local_rank, training=False, counter=self.counter)
 
             if self.zcr:
-                zs, fake_labels, zs_t = sample_latents(self.prior, self.batch_size, self.z_dim, 1, self.num_classes,
+                zs, fake_labels, zs_t = sample_latents(self.prior, self.batch_size, self.z_dim, self.truncated_factor, self.num_classes,
                                                      self.sigma_noise, self.local_rank, sampler=self.sampler)
             else:
-                zs, fake_labels = sample_latents(self.prior, self.batch_size, self.z_dim, 1, self.num_classes, None,
+                zs, fake_labels = sample_latents(self.prior, self.batch_size, self.z_dim, self.truncated_factor, self.num_classes, None,
                                                  self.local_rank, sampler=self.sampler)
 
             if self.latent_op:
                 zs = latent_optimise(zs, fake_labels, self.gen_model, self.dis_model, self.conditional_strategy,
                                         self.latent_op_step, self.latent_op_rate, self.latent_op_alpha, self.latent_op_beta,
-                                        False, self.local_rank, sampler=self.sampler)
+                                        False, self.local_rank)
 
             generated_images = generator(zs, fake_labels, evaluation=True)
 
@@ -808,10 +809,10 @@ class make_worker(object):
             num_batches = num_images//self.batch_size
             for i in range(num_batches):
                 if self.zcr:
-                    zs, fake_labels, zs_t = sample_latents(self.prior, self.batch_size, self.z_dim, 1, self.num_classes,
+                    zs, fake_labels, zs_t = sample_latents(self.prior, self.batch_size, self.z_dim, self.truncated_factor, self.num_classes,
                                                            self.sigma_noise, self.local_rank)
                 else:
-                    zs, fake_labels = sample_latents(self.prior, self.batch_size, self.z_dim, 1, self.num_classes,
+                    zs, fake_labels = sample_latents(self.prior, self.batch_size, self.z_dim, self.truncated_factor, self.num_classes,
                                                      None, self.local_rank)
 
                 if self.latent_op:
@@ -882,10 +883,10 @@ class make_worker(object):
 
             for i in range(num_batches):
                 if self.zcr:
-                    zs, fake_labels, zs_t = sample_latents(self.prior, self.batch_size, self.z_dim, 1, self.num_classes,
+                    zs, fake_labels, zs_t = sample_latents(self.prior, self.batch_size, self.z_dim, self.truncated_factor, self.num_classes,
                                                            self.sigma_noise, self.local_rank)
                 else:
-                    zs, fake_labels = sample_latents(self.prior, self.batch_size, self.z_dim, 1, self.num_classes,
+                    zs, fake_labels = sample_latents(self.prior, self.batch_size, self.z_dim, self.truncated_factor, self.num_classes,
                                                      None, self.local_rank)
 
                 if self.latent_op:

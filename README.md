@@ -6,8 +6,10 @@
 
 **StudioGAN** is a Pytorch library providing implementations of representative Generative Adversarial Networks (GANs) for conditional/unconditional image generation. StudioGAN aims to offer an identical playground for modern GANs so that machine learning researchers can readily compare and analyze a new idea.
 
+※ Thank GeorgeBatch for your helpful [ipynb documentations](https://github.com/POSTECH-CVLab/PyTorch-StudioGAN/tree/master/colab) on how to use StudioGAN in Colab environment.
+
 #  Features
-- Extensive GAN implementations for PyTorch
+- Extensive GAN implementations using PyTorch
 - Comprehensive benchmark of GANs using CIFAR10, Tiny ImageNet, and ImageNet datasets
 - Better performance and lower memory consumption than original implementations
 - Providing pre-trained models that are fully compatible with up-to-date PyTorch environment
@@ -33,8 +35,8 @@
 | [**CRGAN**](https://arxiv.org/abs/1910.12027) | ICLR'20 |  Big ResNet | cBN | PD/CL | Hinge | True |
 | [**ICRGAN**](https://arxiv.org/abs/2002.04724) | arXiv'20 |  Big ResNet | cBN | PD/CL | Hinge | True |
 | [**LOGAN**](https://arxiv.org/abs/1912.00953) | arXiv'19 |  Big ResNet | cBN | PD | Hinge | True |
-| [**DiffAugGAN**](https://arxiv.org/abs/2006.10738) | Neurips'20 |  Big ResNet | cBN | PD/CL | Hinge | True |
-| [**ADAGAN**](https://arxiv.org/abs/2006.06676) | Neurips'20 |  Big ResNet | cBN | PD/CL | Hinge | True |
+| [**BigGAN + DiffAugment**](https://arxiv.org/abs/2006.10738) | Neurips'20 |  Big ResNet | cBN | PD/CL | Hinge | True |
+| [**BigGAN + ADA**](https://arxiv.org/abs/2006.06676) | Neurips'20 |  Big ResNet | cBN | PD/CL | Hinge | True |
 | [**ContraGAN**](https://arxiv.org/abs/2006.12681) | Neurips'20 | Big ResNet | cBN | CL | Hinge | True |
 | [**FreezeD**](https://arxiv.org/abs/2002.10964) | CVPRW'20 | - | - | - | - | - |
 
@@ -258,7 +260,7 @@ Precision measures how accurately the generator can learn the target distributio
 
 We report the best IS, FID, and F_beta values of various GANs. B. S. means batch size for training.
 
-[CR](https://arxiv.org/abs/1910.12027), [ICR](https://arxiv.org/abs/2002.04724), [DiffAug](https://arxiv.org/abs/2006.10738), [ADA](https://arxiv.org/abs/2006.06676), and [LO](https://arxiv.org/abs/1912.00953) refer to regularization or optimization techiniques: CR (Consistency Regularization), ICR (Improved Consistency Regularization), DiffAug (Differentiable Augmentation), ADA (Adaptive Discriminator Augmentation), and LO (Latent Optimization), respectively.
+[CR](https://arxiv.org/abs/1910.12027), [ICR](https://arxiv.org/abs/2002.04724), [DiffAugment](https://arxiv.org/abs/2006.10738), [ADA](https://arxiv.org/abs/2006.06676), and [LO](https://arxiv.org/abs/1912.00953) refer to regularization or optimization techiniques: CR (Consistency Regularization), ICR (Improved Consistency Regularization), DiffAugment (Differentiable Augmentation), ADA (Adaptive Discriminator Augmentation), and LO (Latent Optimization), respectively.
 
 ### CIFAR10 (3x32x32)
 
@@ -285,18 +287,18 @@ CUDA_VISIBLE_DEVICES=0 python3 src/main.py -t -e -l -stat_otf -c CONFIG_PATH --e
 | **BigGAN** | [Paper](https://arxiv.org/abs/1809.11096) | 9.22<sup>[[4]](#footnote_4)</sup> | 14.73 | - | - | - | - | - |
 | **BigGAN + CR** | [Paper](https://arxiv.org/abs/1910.12027) | - | 11.5 | - | - | - | - | - |
 | **BigGAN + ICR** | [Paper](https://arxiv.org/abs/2002.04724) | - | 9.2 | - | - | - | - | - |
-| **BigGAN + DiffAug** | [Repo](https://github.com/mit-han-lab/data-efficient-gans/tree/master/DiffAugment-biggan-cifar) | 9.2<sup>[[4]](#footnote_4)</sup> | 8.7 | - | - | - | - | - |
-| **BigGAN-Mod**| StudioGAN | 9.746 | 8.034 | 0.995 | 0.994 | [Cfg](./src/configs/CIFAR10/BigGAN.json) | [Log](./logs/CIFAR10/BigGAN-train-2021_01_15_14_48_48.log) | [Link](https://drive.google.com/drive/folders/10sSMINp_xxVtjY0YssHgZ9w-_yk6rFVA?usp=sharing) |
-| **BigGAN-Mod + CR** | StudioGAN |  10.380 | 7.178 | 0.994 | 0.993 | [Cfg](./src/configs/CIFAR10/CRGAN(P).json) | [Log](./logs/CIFAR10/CRGAN(P)-train-2020_09_17_13_45_19.log) | [Link](https://drive.google.com/drive/folders/1I9HYBU2t2CYmqsrKeeoivYiIUXHqO8k7?usp=sharing) |
-| **BigGAN-Mod + ICR** | StudioGAN | 10.153 | 7.430 | 0.994 | 0.993 | [Cfg](./src/configs/CIFAR10/ICRGAN(P).json) | [Log](./logs/CIFAR10/ICRGAN(P)-train-2020_09_17_13_46_09.log) | [Link](https://drive.google.com/drive/folders/1ZsX9Xu7j7MCG0V53FSk5K8HJpnsRIvtw?usp=sharing) |
-| **BigGAN-Mod + DiffAug** | StudioGAN |  9.775 | 7.157 | 0.996 | 0.993 | [Cfg](./src/configs/CIFAR10/DiffAugGAN(P).json) | [Log](./logs/CIFAR10/DiffAugGAN(P)-train-2020_09_18_14_33_57.log) | [Link](https://drive.google.com/drive/folders/1xVN7dQPWMLi8gDZEb5FThkjbFtIdzb6b?usp=sharing) |
-| **BigGAN-Mod + ADA** | StudioGAN | 10.136 | 7.881 | 0.993 | 0.994 | [Cfg](./src/configs/CIFAR10/ADAGAN(P).json) | [Log](./logs/CIFAR10/ADAGAN(P)-train-2021_01_31_12_59_51.log) | [Link](https://drive.google.com/drive/folders/1LoQJhYtPl0p49Y5vEDnFSbIyL2_twQW1?usp=sharing) |
-| **BigGAN-Mod + LO** | StudioGAN | 9.701 | 8.369 | 0.992 | 0.989 | [Cfg](./src/configs/CIFAR10/LOGAN.json) |  [Log](./logs/CIFAR10/LOGAN-train-2020_09_17_13_46_47.log) | [Link](https://drive.google.com/drive/folders/1E9ST1wnh6_rA2Q1eIjydadeWPiZHufvu?usp=sharing) |
+| **BigGAN + DiffAugment** | [Repo](https://github.com/mit-han-lab/data-efficient-gans/tree/master/DiffAugment-biggan-cifar) | 9.2<sup>[[4]](#footnote_4)</sup> | 8.7 | - | - | - | - | - |
+| **BigGAN-Mod**| StudioGAN | 9.746 | 8.034 | 0.995 | 0.994 | [Cfg](./src/configs/CIFAR10/BigGAN-Mod.json) | [Log](./logs/CIFAR10/BigGAN-train-2021_01_15_14_48_48.log) | [Link](https://drive.google.com/drive/folders/10sSMINp_xxVtjY0YssHgZ9w-_yk6rFVA?usp=sharing) |
+| **BigGAN-Mod + CR** | StudioGAN |  10.380 | 7.178 | 0.994 | 0.993 | [Cfg](./src/configs/CIFAR10/BigGAN-Mod-CR.json) | [Log](./logs/CIFAR10/CRGAN(P)-train-2020_09_17_13_45_19.log) | [Link](https://drive.google.com/drive/folders/1I9HYBU2t2CYmqsrKeeoivYiIUXHqO8k7?usp=sharing) |
+| **BigGAN-Mod + ICR** | StudioGAN | 10.153 | 7.430 | 0.994 | 0.993 | [Cfg](./src/configs/CIFAR10/BigGAN-Mod-ICR.json) | [Log](./logs/CIFAR10/ICRGAN(P)-train-2020_09_17_13_46_09.log) | [Link](https://drive.google.com/drive/folders/1ZsX9Xu7j7MCG0V53FSk5K8HJpnsRIvtw?usp=sharing) |
+| **BigGAN-Mod + DiffAugment** | StudioGAN |  9.775 | 7.157 | 0.996 | 0.993 | [Cfg](./src/configs/CIFAR10/BigGAN-Mod-DiffAug.json) | [Log](./logs/CIFAR10/DiffAugGAN(P)-train-2020_09_18_14_33_57.log) | [Link](https://drive.google.com/drive/folders/1xVN7dQPWMLi8gDZEb5FThkjbFtIdzb6b?usp=sharing) |
+| **BigGAN-Mod + ADA** | StudioGAN | 10.136 | 7.881 | 0.993 | 0.994 | [Cfg](./src/configs/CIFAR10/BigGAN-Mod-ADA.json) | [Log](./logs/CIFAR10/ADAGAN(P)-train-2021_01_31_12_59_51.log) | [Link](https://drive.google.com/drive/folders/1LoQJhYtPl0p49Y5vEDnFSbIyL2_twQW1?usp=sharing) |
+| **BigGAN-Mod + LO** | StudioGAN | - | - | - | - | [Cfg](./src/configs/CIFAR10/BigGAN-Mod-LO.json) |  [Log]() | [Link]() |
 | **ContraGAN** | StudioGAN |  9.729 | 8.065 | 0.993 | 0.992 | [Cfg](./src/configs/CIFAR10/ContraGAN.json) | [Log](./logs/CIFAR10/ContraGAN-train-2020_10_04_21_50_14.log) | [Link](https://drive.google.com/drive/folders/10nxLyB7PyUsaGiBn6xD0e3_teYlB9Q59?usp=sharing) |
-| **ContraGAN + CR** | StudioGAN |  9.812 | 7.685 | 0.995 | 0.993 | [Cfg](./src/configs/CIFAR10/CRGAN(C).json) | [Log](./logs/CIFAR10/CRGAN(C)-train-2020_12_04_13_51_40.log) | [Link](https://drive.google.com/drive/folders/1_Bkt_3NE95Ekxo8YG840wSNDTPmQDQb3?usp=sharing) |
-| **ContraGAN + ICR** | StudioGAN |  10.117 | 7.547 | 0.996 | 0.993 | [Cfg](./src/configs/CIFAR10/ICRGAN(C).json) | [Log](./logs/CIFAR10/ICRGAN(C)-train-2020_12_04_13_53_13.log) | [Link](https://drive.google.com/drive/folders/1vXoYnKEw3YwLG6ZutYFz_LCLr10VGa9T?usp=sharing) |
-| **ContraGAN + DiffAug** | StudioGAN | 9.996 | 7.193 | 0.995 | 0.990 | [Cfg](./src/configs/CIFAR10/DiffAugGAN(C).json) | [Log](./logs/CIFAR10/DiffAugGAN(C)-train-2020_11_14_16_20_04.log) | [Link](https://drive.google.com/drive/folders/1MKZgtyLg79Ti2nWRea6sAWMY1KfMqoKI?usp=sharing) |
-| **ContraGAN + ADA** | StudioGAN | 9.411 | 10.830 | 0.990 | 0.964 | [Cfg](./src/configs/CIFAR10/ADAGAN(C).json) | [Log](./logs/CIFAR10/ADAGAN(C)-train-2021_01_31_12_59_47.log) | [Link](https://drive.google.com/drive/folders/1JzSvohfIsEXKwqEUnezyRsfBiiLVMMo-?usp=sharing) |
+| **ContraGAN + CR** | StudioGAN |  9.812 | 7.685 | 0.995 | 0.993 | [Cfg](./src/configs/CIFAR10/ContraGAN-CR.json) | [Log](./logs/CIFAR10/CRGAN(C)-train-2020_12_04_13_51_40.log) | [Link](https://drive.google.com/drive/folders/1_Bkt_3NE95Ekxo8YG840wSNDTPmQDQb3?usp=sharing) |
+| **ContraGAN + ICR** | StudioGAN |  10.117 | 7.547 | 0.996 | 0.993 | [Cfg](./src/configs/CIFAR10/ContraGAN-ICR.json) | [Log](./logs/CIFAR10/ICRGAN(C)-train-2020_12_04_13_53_13.log) | [Link](https://drive.google.com/drive/folders/1vXoYnKEw3YwLG6ZutYFz_LCLr10VGa9T?usp=sharing) |
+| **ContraGAN + DiffAugment** | StudioGAN | 9.996 | 7.193 | 0.995 | 0.990 | [Cfg](./src/configs/CIFAR10/ContraGAN-DiffAug.json) | [Log](./logs/CIFAR10/DiffAugGAN(C)-train-2020_11_14_16_20_04.log) | [Link](https://drive.google.com/drive/folders/1MKZgtyLg79Ti2nWRea6sAWMY1KfMqoKI?usp=sharing) |
+| **ContraGAN + ADA** | StudioGAN | 9.411 | 10.830 | 0.990 | 0.964 | [Cfg](./src/configs/CIFAR10/ContraGAN-ADA.json) | [Log](./logs/CIFAR10/ADAGAN(C)-train-2021_01_31_12_59_47.log) | [Link](https://drive.google.com/drive/folders/1JzSvohfIsEXKwqEUnezyRsfBiiLVMMo-?usp=sharing) |
 
 When evaluating, the statistics of batch normalization layers are calculated on the fly (statistics of a batch).
 
@@ -328,17 +330,17 @@ CUDA_VISIBLE_DEVICES=0,...,N python3 src/main.py -t -e -l -stat_otf -c CONFIG_PA
 | **ProjGAN** | StudioGAN | 6.224 | 89.175 | 0.626 | 0.428 | [Cfg](./src/configs/TINY_ILSVRC2012/ProjGAN.json) | [Log](./logs/TINY_IMAGENET/ProjGAN-train-2021_01_15_11_59_49.log) | [Link](https://drive.google.com/drive/folders/1YKd1gh7-1BGAyTfxVxKtTM3H6LQdPM8T?usp=sharing) |
 | **SNGAN** | StudioGAN | 8.412 | 53.590 | 0.900 | 0.703 | [Cfg](./src/configs/TINY_ILSVRC2012/SNGAN.json) | [Log](./logs/TINY_IMAGENET/SNGAN-train-2021_01_15_11_59_43.log) | [Link](https://drive.google.com/drive/folders/1NYyvlFKrPU3aa88LUJcKyerEyJw_FgUR?usp=sharing) |
 | **SAGAN** | StudioGAN | 8.342 | 51.414 | 0.898 | 0.698 | [Cfg](./src/configs/TINY_ILSVRC2012/SAGAN.json) | [Log](./logs/TINY_IMAGENET/SAGAN-train-2021_01_15_12_16_42.log) | [Link](https://drive.google.com/drive/folders/1J_A8fyaasglEuQB3M9A2u6HdPfsMt5xl?usp=sharing) |
-| **BigGAN-Mod** | StudioGAN | 11.998 | 31.920 | 0.956 | 0.879 | [Cfg](./src/configs/TINY_ILSVRC2012/BigGAN.json) | [Log](./logs/TINY_IMAGENET/BigGAN-train-2021_01_18_11_42_25.log)| [Link](https://drive.google.com/drive/folders/1euAxIUzYGom1swguOJApcC-uQfOPx99V?usp=sharing) |
-| **BigGAN-Mod + CR** | StudioGAN | 14.887 | 21.488 | 0.969 | 0.936 | [Cfg](./src/configs/TINY_ILSVRC2012/CRGAN(P).json) | [Log](./logs/TINY_IMAGENET/CRGAN(P)-train-2021_01_01_08_55_18.log) | [Link](https://drive.google.com/drive/folders/17w4QgeINDNcfOT0fpHLALIRnEZ_Z36ze?usp=sharing) |
-| **BigGAN-Mod + ICR** | StudioGAN | 5.605 | 91.326 | 0.525 | 0.399 | [Cfg](./src/configs/TINY_ILSVRC2012/ICRGAN(P).json) | [Log](./logs/TINY_IMAGENET/ICRGAN(P)-train-2021_01_04_11_19_15.log)|  [Link](https://drive.google.com/drive/folders/1dU-NzqIauXbK_JJf6aWT45IPmtbyti0T?usp=sharing) |
-| **BigGAN-Mod + DiffAug** | StudioGAN | 17.075 | 16.338 | 0.979 | 0.971 | [Cfg](./src/configs/TINY_ILSVRC2012/DiffAugGAN(P).json) | [Log](./logs/TINY_IMAGENET/DiffAugGAN(P)-train-2021_01_17_04_59_53.log) | [Link](https://drive.google.com/drive/folders/1YXfQgDcrEQCzviSStZsmVKTBlg4gs1Jg?usp=sharing) |
-| **BigGAN-Mod + ADA** | StudioGAN | 15.158 | 24.121 | 0.953 | 0.942 | [Cfg](./src/configs/TINY_ILSVRC2012/ADAGAN(P).json) | [Log](./logs/TINY_IMAGENET/ADAGAN(P)-train-2021_02_16_15_41_34.log) | [Link](https://drive.google.com/drive/folders/1KzyHoGp44YJ9bUyKQ6Ysm7T6RV2CUFNa?usp=sharing) |
-| **BigGAN-Mod + LO** | StudioGAN | 6.964 | 70.660 | 0.857 | 0.621 | [Cfg](./src/configs/TINY_ILSVRC2012/LOGAN.json) | [Log](./logs/TINY_IMAGENET/LOGAN-train-2021_01_17_05_06_23.log) | [Link](https://drive.google.com/drive/folders/11EFytTW5JBD-HKc0DE8Zq0dqBXHcRmPP?usp=sharing) |
+| **BigGAN-Mod** | StudioGAN | 11.998 | 31.920 | 0.956 | 0.879 | [Cfg](./src/configs/TINY_ILSVRC2012/BigGAN-Mod.json) | [Log](./logs/TINY_IMAGENET/BigGAN-train-2021_01_18_11_42_25.log)| [Link](https://drive.google.com/drive/folders/1euAxIUzYGom1swguOJApcC-uQfOPx99V?usp=sharing) |
+| **BigGAN-Mod + CR** | StudioGAN | 14.887 | 21.488 | 0.969 | 0.936 | [Cfg](./src/configs/TINY_ILSVRC2012/BigGAN-Mod-CR.json) | [Log](./logs/TINY_IMAGENET/CRGAN(P)-train-2021_01_01_08_55_18.log) | [Link](https://drive.google.com/drive/folders/17w4QgeINDNcfOT0fpHLALIRnEZ_Z36ze?usp=sharing) |
+| **BigGAN-Mod + ICR** | StudioGAN | 5.605 | 91.326 | 0.525 | 0.399 | [Cfg](./src/configs/TINY_ILSVRC2012/BigGAN-Mod-ICR.json) | [Log](./logs/TINY_IMAGENET/ICRGAN(P)-train-2021_01_04_11_19_15.log)|  [Link](https://drive.google.com/drive/folders/1dU-NzqIauXbK_JJf6aWT45IPmtbyti0T?usp=sharing) |
+| **BigGAN-Mod + DiffAugment** | StudioGAN | 17.075 | 16.338 | 0.979 | 0.971 | [Cfg](./src/configs/TINY_ILSVRC2012/BigGAN-Mod-DiffAug.json) | [Log](./logs/TINY_IMAGENET/DiffAugGAN(P)-train-2021_01_17_04_59_53.log) | [Link](https://drive.google.com/drive/folders/1YXfQgDcrEQCzviSStZsmVKTBlg4gs1Jg?usp=sharing) |
+| **BigGAN-Mod + ADA** | StudioGAN | 15.158 | 24.121 | 0.953 | 0.942 | [Cfg](./src/configs/TINY_ILSVRC2012/BigGAN-Mod-ADA.json) | [Log](./logs/TINY_IMAGENET/ADAGAN(P)-train-2021_02_16_15_41_34.log) | [Link](https://drive.google.com/drive/folders/1KzyHoGp44YJ9bUyKQ6Ysm7T6RV2CUFNa?usp=sharing) |
+| **BigGAN-Mod + LO** | StudioGAN | - | - | - | - | [Cfg](./src/configs/TINY_ILSVRC2012/BigGAN-Mod-LO.json) | [Log](-) | [Link](-) |
 | **ContraGAN** | StudioGAN | 13.494 | 27.027 | 0.975 | 0.902 | [Cfg](./src/configs/TINY_ILSVRC2012/ContraGAN.json) | [Log](./logs/TINY_IMAGENET/ContraGAN-train-2021_01_01_09_35_08.log)| [Link](https://drive.google.com/drive/folders/1wFwCf0Zgjc5ODMNhS_9EPlstNh71ouC_?usp=sharing) |
-| **ContraGAN + CR** | StudioGAN | 15.623 | 19.716 | 0.983 | 0.941 | [Cfg](./src/configs/TINY_ILSVRC2012/CRGAN(C).json) | [Log](./logs/TINY_IMAGENET/CRGAN(C)-train-2021_01_01_08_56_13.log) | [Link](https://drive.google.com/drive/folders/1Iv1EilJDQ4V5L28KecRDC1ENoWpbVjwe?usp=sharing) |
-| **ContraGAN + ICR** | StudioGAN | 15.830 | 21.940 | 0.980 | 0.944 | [Cfg](./src/configs/TINY_ILSVRC2012/ICRGAN(C).json) | [Log](./logs/TINY_IMAGENET/ICRGAN(C)-train-2021_01_03_12_11_56.log) | [Link](https://drive.google.com/drive/folders/1VxSRKEk3ZPoNSU1GGzY2phJkagmnsYvX?usp=sharing) |
-| **ContraGAN + DiffAug** | StudioGAN | 17.303 | 15.755 | 0.984 | 0.962 | [Cfg](./src/configs/TINY_ILSVRC2012/DiffAugGAN(C).json) | [Log](./logs/TINY_IMAGENET/DiffAugGAN(C)-train-2021_01_17_04_59_40.log) | [Link](https://drive.google.com/drive/folders/1tk5zDV-HCFEnPhHgST7PzmwR5ZXiaT3S?usp=sharing) |
-| **ContraGAN + ADA** | StudioGAN | 8.398 | 55.025 | 0.878 | 0.677 | [Cfg](./src/configs/TINY_ILSVRC2012/ADAGAN(C).json) | [Log](./logs/TINY_IMAGENET/ADAGAN(C)-train-2021_02_16_15_41_20.log) | [Link](https://drive.google.com/drive/folders/1SmY4l_ns3sXonEsXZG88eLY-X8mb9GT2?usp=sharing) |
+| **ContraGAN + CR** | StudioGAN | 15.623 | 19.716 | 0.983 | 0.941 | [Cfg](./src/configs/TINY_ILSVRC2012/ContraGAN-CR.json) | [Log](./logs/TINY_IMAGENET/CRGAN(C)-train-2021_01_01_08_56_13.log) | [Link](https://drive.google.com/drive/folders/1Iv1EilJDQ4V5L28KecRDC1ENoWpbVjwe?usp=sharing) |
+| **ContraGAN + ICR** | StudioGAN | 15.830 | 21.940 | 0.980 | 0.944 | [Cfg](./src/configs/TINY_ILSVRC2012/ContraGAN-ICR.json) | [Log](./logs/TINY_IMAGENET/ICRGAN(C)-train-2021_01_03_12_11_56.log) | [Link](https://drive.google.com/drive/folders/1VxSRKEk3ZPoNSU1GGzY2phJkagmnsYvX?usp=sharing) |
+| **ContraGAN + DiffAugment** | StudioGAN | 17.303 | 15.755 | 0.984 | 0.962 | [Cfg](./src/configs/TINY_ILSVRC2012/ContraGAN-DiffAug.json) | [Log](./logs/TINY_IMAGENET/DiffAugGAN(C)-train-2021_01_17_04_59_40.log) | [Link](https://drive.google.com/drive/folders/1tk5zDV-HCFEnPhHgST7PzmwR5ZXiaT3S?usp=sharing) |
+| **ContraGAN + ADA** | StudioGAN | 8.398 | 55.025 | 0.878 | 0.677 | [Cfg](./src/configs/TINY_ILSVRC2012/ContraGAN-ADA.json) | [Log](./logs/TINY_IMAGENET/ADAGAN(C)-train-2021_02_16_15_41_20.log) | [Link](https://drive.google.com/drive/folders/1SmY4l_ns3sXonEsXZG88eLY-X8mb9GT2?usp=sharing) |
 
 When evaluating, the statistics of batch normalization layers are calculated on the fly (statistics of a batch).
 
@@ -363,10 +365,10 @@ CUDA_VISIBLE_DEVICES=0,...,N python3 src/main.py -t -e -l -sync_bn -stat_otf -c 
 | **SNGAN** | StudioGAN | 32.247 | 26.792 | 0.938 | 0.913 | [Cfg](./src/configs/ILSVRC2012/SNGAN.json) | [Log](./logs/IMAGENET/SNGAN-train-2021_02_05_01_08_08.log) | [Link](https://drive.google.com/drive/folders/1Ek2wAMlxpajL_M8aub4DKQ9B313K8XhS?usp=sharing) |
 | **SAGAN** | StudioGAN | 29.848 | 34.726 | 0.849 | 0.914 | [Cfg](./src/configs/ILSVRC2012/SAGAN.json) | [Log](./logs/IMAGENET/SAGAN-train-2021_02_11_16_18_59.log) | [Link](https://drive.google.com/drive/folders/1ZYaqeeumDgxOPDhRR5QLeLFIpgBJ9S6B?usp=sharing) |
 | **BigGAN** | [Paper](https://arxiv.org/abs/1809.11096) | 98.8<sup>[[4]](#footnote_4)</sup> | 8.7 | - | - | - | - | - |
-| **BigGAN** | [Paper](https://arxiv.org/abs/2006.12681) | - | 21.072 | - | - | [Cfg](./src/configs/ILSVRC2012/BigGAN256_TTUR.json) | - | - |
+| **BigGAN + TTUR** | [Paper](https://arxiv.org/abs/2006.12681) | - | 21.072 | - | - | [Cfg](./src/configs/ILSVRC2012/BigGAN256_TTUR.json) | - | - |
 | **BigGAN** | StudioGAN | 28.633 | 24.684 | 0.941 | 0.921 | [Cfg](./src/configs/ILSVRC2012/BigGAN256.json) | [Log](./logs/IMAGENET/BigGAN256-train-2021_01_24_03_52_15.log) | [Link](https://drive.google.com/drive/folders/1DNX7-q6N0UgOKTqFG45KKZ1aY2o9pAx2?usp=sharing) |
 | **BigGAN** | StudioGAN | 99.705 | 7.893 | 0.985 | 0.989 | [Cfg](./src/configs/ILSVRC2012/BigGAN2048.json) | [Log](./logs/IMAGENET/BigGAN2048-train-2020_11_17_15_17_48.log) | [Link](https://drive.google.com/drive/folders/1_RTYZ0RXbVLWufE7bbWPvp8n_QJbA8K0?usp=sharing) |
-| **ContraGAN** | [Paper](https://arxiv.org/abs/2006.12681) | 31.101 | 19.693 | 0.951 | 0.927 | [Cfg](./src/configs/ILSVRC2012/ContraGAN256_TTUR.json) | [Log](./logs/IMAGENET/contra_biggan_imagenet128_hinge_no-train-2020_08_08_18_45_52.log) | [Link](https://drive.google.com/drive/folders/1ywFuPOY1jo6xd6COHaIlnspIThKUotgL?usp=sharing) |
+| **ContraGAN + TTUR** | [Paper](https://arxiv.org/abs/2006.12681) | 31.101 | 19.693 | 0.951 | 0.927 | [Cfg](./src/configs/ILSVRC2012/ContraGAN256_TTUR.json) | [Log](./logs/IMAGENET/contra_biggan_imagenet128_hinge_no-train-2020_08_08_18_45_52.log) | [Link](https://drive.google.com/drive/folders/1ywFuPOY1jo6xd6COHaIlnspIThKUotgL?usp=sharing) |
 | **ContraGAN** | StudioGAN | 25.249 | 25.161 | 0.947 | 0.855 | [Cfg](./src/configs/ILSVRC2012/ContraGAN256.json) | [Log](./logs/IMAGENET/ContraGAN256-train-2021_01_25_13_55_18.log) | [Link](https://drive.google.com/drive/folders/1pbP6LQ00VF7si-LXLvd_D00Pk5_E_JnP?usp=sharing) |
 
 When evaluating, the statistics of batch normalization layers are calculated in advance (moving average of the previous statistics).
