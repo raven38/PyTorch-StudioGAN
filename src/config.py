@@ -63,6 +63,8 @@ class Configurations(object):
         self.MODEL.d_cond_mtd = "W/O"
         # type of auxiliary classifier \in ["W/O", "TAC", "ADC"]
         self.MODEL.aux_cls_type = "W/O"
+        # type of auxiliary classifier \in ["W/O", "NOSS", "OSS"]
+        self.MODEL.label_assignor_type = "W/O"
         # whether to normalize feature maps from the discriminator or not
         self.MODEL.normalize_d_embed = False
         # dimension of feature maps from the discriminator
@@ -343,6 +345,7 @@ class Configurations(object):
         self.MISC.no_proc_data = ["CIFAR10", "CIFAR100", "Tiny_ImageNet"]
         self.MISC.base_folders = ["checkpoints", "figures", "logs", "moments", "samples", "values"]
         self.MISC.classifier_based_GAN = ["AC", "2C", "D2DCE"]
+        self.MISC.label_assignors = ["NOSS", "OSS"]
         self.MISC.info_params = ["info_discrete_linear", "info_conti_mu_linear", "info_conti_var_linear"]
         self.MISC.cas_setting = {
             "CIFAR10": {
