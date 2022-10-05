@@ -20,6 +20,7 @@ from torch.utils.data.distributed import DistributedSampler
 import torch
 import torch.distributed as dist
 import wandb
+import numpy as np
 
 from data_util import Dataset_
 from utils.style_ops import grid_sample_gradfix
@@ -147,7 +148,7 @@ def load_worker(local_rank, cfgs, gpus_per_node, run_name, hdf5_path):
                                 resize_size=None if cfgs.DATA.name in cfgs.MISC.no_proc_data else cfgs.DATA.img_size,
                                 resizer=cfgs.RUN.pre_resizer,
                                 random_flip=False,
-                                hdf5_path=hdf5_path.replace('train', 'eval')e if hdf5_path is not None else None,
+                                hdf5_path=hdf5_path.replace('train', 'eval') if hdf5_path is not None else None,
                                 normalize=True,
                                 load_data_in_memory=False)
         if local_rank == 0:
@@ -174,22 +175,21 @@ def load_worker(local_rank, cfgs, gpus_per_node, run_name, hdf5_path):
                                             rank=local_rank,
                                             shuffle=False,
                                             drop_last=False)
+    else:
+        if cfgs.MODEL.label_assignor_type not in cfgs.MISC.label_assignors:
+            labeled_ratio = 1.0                
         else:
-            if cfgs.MODEL.label_assignor_type not in cfgs.MISC.label_assignors:
-                labeled_ratio = 1.0                
-            else:
-                labeled_ratio = cfgs.MODEL.labeled_ratio 
-
-            if labeled_ratio != "N/A":
-                try:
-                    targets = train_dataset.data.targets
-                except:
-                    targets = train_dataset.labels            
-                    num_unlabeled = np.sum(targets == -1)
-                    num_labeled = np.sum(targets != -1)
-                    if local_rank == 0: logger.info('Labeled data size in train dataset: {dataset_size}'.format(dataset_size=num_labeled))
-                    sample_weights = torch.from_numpy(np.where(targets == -1, (1-labeled_ratio) / num_unlabeled, labeled_ratio / num_labeled))
-                    train_sampler = torch.utils.data.sampler.WeightedRandomSampler(sample_weights, len(sample_weights), replacement=True)
+            labeled_ratio = cfgs.MODEL.labeled_ratio 
+        if labeled_ratio != "N/A":
+            try:
+                targets = train_dataset.data.targets
+            except:
+                targets = train_dataset.labels            
+            num_unlabeled = np.sum(targets == -1)
+            num_labeled = np.sum(targets != -1)
+            if local_rank == 0: logger.info('Labeled data size in train dataset: {dataset_size}'.format(dataset_size=num_labeled))
+            sample_weights = torch.from_numpy(np.where(targets == -1, (1-labeled_ratio) / num_unlabeled, labeled_ratio / num_labeled))
+            train_sampler = torch.utils.data.sampler.WeightedRandomSampler(sample_weights, len(sample_weights), replacement=True)
 
     cfgs.OPTIMIZATION.basket_size = cfgs.OPTIMIZATION.batch_size*\
                                     cfgs.OPTIMIZATION.acml_steps*\

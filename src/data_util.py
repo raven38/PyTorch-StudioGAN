@@ -139,4 +139,6 @@ class Dataset_(Dataset):
                 img, label = self.data[index], self.labels[index]
             else:
                 img, label = self._get_hdf5(index)
+        if img.shape[0] == 3:
+            img = img.transpose(1, 2, 0)
         return self.trsf(img), int(label)
