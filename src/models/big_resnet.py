@@ -346,8 +346,10 @@ class Discriminator(nn.Module):
         if d_init:
             ops.init_weights(self.modules, d_init)
 
-    def forward(self, x, label, eval=False, adc_fake=False):
+    def forward(self, x, label_, eval=False, adc_fake=False):
         with torch.cuda.amp.autocast() if self.mixed_precision and not eval else misc.dummy_context_mgr() as mp:
+            label = torch.eye(self.num_classes+1, device=label_.device)[label_][:, :self.num_classes]
+
             embed, proxy, cls_output = None, None, None
             mi_embed, mi_proxy, mi_cls_output = None, None, None
             info_discrete_c_logits, info_conti_mu, info_conti_var = None, None, None
@@ -364,10 +366,16 @@ class Discriminator(nn.Module):
 
             # make class labels odd (for fake) or even (for real) for ADC
             if self.aux_cls_type == "ADC":
-                if adc_fake:
-                    label = label*2 + 1
+                if label.shape == (len(label_), self.n_classes):
+                    if adc_fake:
+                        label = torch.stack([torch.zeros((len(label_), self.n_classes)), label]).transpose(1, 2, 0).view(len(label_),self.n_classes*2)
+                    else:
+                        label = torch.stack([label, torch.zeros((len(label_), self.n_classes))]).transpose(1, 2, 0).view(len(label_),self.n_classes*2)
                 else:
-                    label = label*2
+                    if adc_fake:
+                        label = label*2 + 1
+                    else:
+                        label = label*2
 
             # forward pass through InfoGAN Q head
             if self.MODEL.info_type in ["discrete", "both"]:
