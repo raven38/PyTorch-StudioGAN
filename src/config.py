@@ -65,6 +65,8 @@ class Configurations(object):
         self.MODEL.aux_cls_type = "W/O"
         # type of auxiliary classifier \in ["W/O", "S3", "NOSS", "OSS", 'Random', 'Single']
         self.MODEL.label_assignor_type = "W/O"
+        # labeled ratio in batch
+        self.MODEL.labeled_ratio  = "N/A"
         # whether to normalize feature maps from the discriminator or not
         self.MODEL.normalize_d_embed = False
         # dimension of feature maps from the discriminator

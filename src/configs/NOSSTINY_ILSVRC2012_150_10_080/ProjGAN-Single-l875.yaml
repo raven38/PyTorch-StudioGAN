@@ -1,0 +1,19 @@
+DATA:
+  name: "NOSSTINY_ILSVRC2012_150_10_080"
+  img_size: 64
+  num_classes: 150
+MODEL:
+  g_cond_mtd: "cBN"
+  d_cond_mtd: "PD"
+  label_assignor_type: "Single"
+  labeled_ratio: 0.875
+LOSS:
+  adv_loss: "hinge"
+OPTIMIZATION:
+  batch_size: 256
+  g_lr: 0.0001
+  d_lr: 0.0004
+  beta1: 0.0
+  beta2: 0.999
+  d_updates_per_step: 1
+  total_steps: 100000
