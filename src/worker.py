@@ -138,8 +138,16 @@ class WORKER(object):
             num_classes = num_classes*2
             self.adc_fake = True
 
+        if self.MODEL.label_assignor_type == "NOSS":
+            self.assignor_loss = losses.GeneralizedCELoss(q=0.7)
+        elif self.MODEL.label_assignor_type == "OSS":
+            self.assignor_loss = losses.CrossEntropyLoss()
+            self.ent_loss = losses.HLoss()
+        elif self.MODEL.label_assignor_type == "S3":
+            self.assignor_loss = losses.CrossEntropyLoss()
+
         if self.MODEL.d_cond_mtd == "AC":
-            self.cond_loss = losses.CrossEntropyLoss()
+            self.cond_loss = losses.SoftCrossEntropyLoss()
         elif self.MODEL.d_cond_mtd == "2C":
             self.cond_loss = losses.ConditionalContrastiveLoss(num_classes=num_classes,
                                                                temperature=self.LOSS.temperature,
@@ -296,12 +304,35 @@ class WORKER(object):
                                                             self.OPTIMIZATION.batch_size),
                                                             device=self.local_rank)
 
+                    weight_real = None
+                    if self.MODEL.label_assignor_type == 'NOSS':
+                        weight_real = F.softmax(1 - misc.calc_entropy(real_dict['cls_assign']).detach(), dim=0).detach()
+
                     # calculate adversarial loss defined by "LOSS.adv_loss"
                     if self.LOSS.adv_loss == "MH":
                         dis_acml_loss = self.LOSS.d_loss(DDP=self.DDP, **real_dict)
                         dis_acml_loss += self.LOSS.d_loss(fake_dict["adv_output"], self.lossy, DDP=self.DDP)
                     else:
-                        dis_acml_loss = self.LOSS.d_loss(real_dict["adv_output"], fake_dict["adv_output"], DDP=self.DDP)
+                        dis_acml_loss = self.LOSS.d_loss(real_dict["adv_output"], fake_dict["adv_output"], DDP=self.DDP, weight_real=weight_real)
+
+                    # calculate label assignor_loss
+                    if self.MODEL.label_assignor_type == 'NOSS':
+                        mask = torch.nonzero(real_labels != -1).squeeze()
+                        ratio = mask.shape[0] / self.batch_size
+                        real_ce = self.gce_loss(real_dict['cls_assign'].index_select(0, mask), real_labels.index_select(0, mask))
+                        fake_ce = self.gce_loss(fake_dict['cls_assign'], fake_labels) * ratio
+                        dis_acml_loss += self.assign_lambda * (real_ce + fake_ce)
+                    elif self.MODEL.label_assignor_type == 'OSS':
+                        mask = torch.nonzero(real_labels != -1).squeeze()
+                        ratio = mask.shape[0] / self.OPTIMIZATION.batch_size
+                        real_ce = self.ce_loss(real_dict['cls_assign'].index_select(0, mask), real_labels.index_select(0, mask))
+                        fake_ce = self.ce_loss(fake_dict['cls_assign'], fake_labels) * ratio
+                        ent = self.ent_loss(real_dict['cls_assign']) + self.ent_loss(fake_dict['cls_assign']) * ratio
+                        dis_acml_loss += self.assign_lambda * ((real_ce + fake_ce) - ent)
+                    elif self.MODEL.label_assignor_type == 'S3':
+                        mask = torch.nonzero(real_labels != -1).squeeze()
+                        real_ce = self.ce_loss(real_dict['cls_assign'].index_select(0, mask), real_labels.index_select(0, mask))
+                        dis_acml_loss += self.LOSS.assign_lambda * real_ce
 
                     # calculate class conditioning loss defined by "MODEL.d_cond_mtd"
                     if self.MODEL.d_cond_mtd in self.MISC.classifier_based_GAN:

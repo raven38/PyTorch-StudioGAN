@@ -192,6 +192,10 @@ def embedding(num_embeddings, embedding_dim):
     return nn.Embedding(num_embeddings=num_embeddings, embedding_dim=embedding_dim)
 
 
+def embedding2(num_embeddings, embedding_dim):
+    return nn.Linear(in_features=num_embeddings, out_features=embedding_dim, bias=False)
+
+
 def snconv2d(in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, bias=True):
     return spectral_norm(nn.Conv2d(in_channels=in_channels,
                                    out_channels=out_channels,
@@ -222,6 +226,10 @@ def snlinear(in_features, out_features, bias=True):
 
 def sn_embedding(num_embeddings, embedding_dim):
     return spectral_norm(nn.Embedding(num_embeddings=num_embeddings, embedding_dim=embedding_dim), eps=1e-6)
+
+
+def sn_embedding2(num_embeddings, embedding_dim):
+    return spectral_norm(nn.Linear(in_features=num_embeddings, out_features=embedding_dim, bias=False), eps=1e-6)
 
 
 def batchnorm_2d(in_features, eps=1e-4, momentum=0.1, affine=True):

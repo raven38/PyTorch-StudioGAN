@@ -46,6 +46,15 @@ class CrossEntropyLoss(torch.nn.Module):
         return self.ce_loss(cls_output, label).mean()
 
 
+class SoftCrossEntropyLoss(torch.nn.Module):
+    def __init__(self):
+        super(SoftCrossEntropyLoss, self).__init__()
+        self.logsoftmax = nn.LogSoftmax()
+
+    def forward(self, cls_output, label, **_):
+        return torch.mean(torch.sum(-label * self.logsoftmax(cls_output), dim=1))
+
+
 class ConditionalContrastiveLoss(torch.nn.Module):
     def __init__(self, num_classes, temperature, master_rank, DDP):
         super(ConditionalContrastiveLoss, self).__init__()
@@ -223,8 +232,14 @@ def g_ls(d_logit_fake, DDP):
     return gen_loss.mean()
 
 
-def d_hinge(d_logit_real, d_logit_fake, DDP):
-    return torch.mean(F.relu(1. - d_logit_real)) + torch.mean(F.relu(1. + d_logit_fake))
+def d_hinge(d_logit_real, d_logit_fake, DDP, weight_real=None):
+    if weight_real is None:
+        return torch.mean(F.relu(1. - d_logit_real)) + torch.mean(F.relu(1. + d_logit_fake))
+    else:
+        real = F.relu(1. - d_logit_real)
+        weighted_real = len(d_logit_real) * torch.mean(real * weight_real)
+        fake = torch.mean(F.relu(1. + d_logit_fake))
+        return (torch.mean(real).detach() / weighted_real.detach()).detach() * weighted_real + fake
 
 
 def g_hinge(d_logit_fake, DDP):
@@ -380,3 +395,34 @@ def stylegan_cal_r1_reg(adv_output, images):
         r1_grads = torch.autograd.grad(outputs=[adv_output.sum()], inputs=[images], create_graph=True, only_inputs=True)[0]
     r1_penalty = r1_grads.square().sum([1,2,3]) / 2
     return r1_penalty.mean()
+
+
+class HLoss(nn.Module):
+    def __init__(self):
+        super(HLoss, self).__init__()
+
+    def forward(self, x):
+        b = F.softmax(x, dim=1) * F.log_softmax(x, dim=1)
+        b = (-1.0 * b.sum(dim=1) / np.log(b.shape[1])).mean()
+        return b
+
+
+class GeneralizedCELoss(nn.Module):
+
+    def __init__(self, q=0.7):
+        super(GeneralizedCELoss, self).__init__()
+        self.q = q
+             
+    def forward(self, logits, targets):
+        p = F.softmax(logits, dim=1)
+        if np.isnan(p.mean().item()):
+            raise NameError('GCE_p')
+        Yg = torch.gather(p, 1, torch.unsqueeze(targets, 1))
+        # modify gradient of cross entropy
+        loss_weight = (Yg.squeeze().detach()**self.q)*self.q
+        if np.isnan(Yg.mean().item()):
+            raise NameError('GCE_Yg')
+
+        loss = F.cross_entropy(logits, targets, reduction='none') * loss_weight
+        
+        return loss.mean()

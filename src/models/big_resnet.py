@@ -334,6 +334,9 @@ class Discriminator(nn.Module):
             else:
                 raise NotImplementedError
 
+        if self.MODEL.label_assignor_type in ["NOSS", "OSS", "S3"]:
+            self.linear4 = MODULES.d_linear(in_features=self.out_dims[-1], out_features=self.num_classes, bias=False)
+
         # Q head network for infoGAN
         if self.MODEL.info_type in ["discrete", "both"]:
             out_features = self.MODEL.info_num_discrete_c*self.MODEL.info_dim_discrete_c
@@ -363,6 +366,26 @@ class Discriminator(nn.Module):
 
             # adversarial training
             adv_output = torch.squeeze(self.linear1(h))
+
+            if self.MODEL.label_assignor_type == 'NOSS':
+                cls_assign = self.linear4(h)
+                mask = (label_ == -1).int()
+                label = ((F.softmax(cls_assign, dim=1) + label)/2 * (1 - mask).view(-1, 1) + F.softmax(cls_assign, dim=1) * mask.view(-1, 1)).detach()
+            elif self.MODEL.label_assignor_type == 'OSS':
+                cls_assign = self.linear4(h)
+                mask = (label_ == -1).int()
+                label = (label * (1 - mask).view(-1, 1) + F.softmax(cls_assign, dim=1) * mask.view(-1, 1)).detach()
+            elif self.MODEL.label_assignor_type == 'S3':
+                cls_assign = self.linear4(h)
+                mask = (label_ == -1).int()
+                label = (label * (1 - mask).view(-1, 1) + F.softmax(cls_assign, dim=1) * mask.view(-1, 1)).detach()
+            elif self.MODEL.label_assignor_type == 'Random':
+                mask = (label_ == -1).int()
+                random_label = torch.eye(self.num_classes, device=label_.device)[torch.randint(0, self.num_classes, label_.shape, device=label_.device)]
+                label = (label * (1 - mask).view(-1, 1) + random_label * mask.view(-1, 1)).detach()
+            elif self.MODEL.label_assignor_type == 'Single':
+                mask = (label_ == -1).int()
+                label = (label * (1 - mask).view(-1, 1) + torch.ones_like(label) / self.num_classes * mask.view(-1, 1)).detach()
 
             # make class labels odd (for fake) or even (for real) for ADC
             if self.aux_cls_type == "ADC":
@@ -426,6 +449,7 @@ class Discriminator(nn.Module):
             "embed": embed,
             "proxy": proxy,
             "cls_output": cls_output,
+            "cls_assign": cls_assign,
             "label": label,
             "mi_embed": mi_embed,
             "mi_proxy": mi_proxy,

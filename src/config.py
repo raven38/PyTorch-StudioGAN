@@ -63,7 +63,7 @@ class Configurations(object):
         self.MODEL.d_cond_mtd = "W/O"
         # type of auxiliary classifier \in ["W/O", "TAC", "ADC"]
         self.MODEL.aux_cls_type = "W/O"
-        # type of auxiliary classifier \in ["W/O", "NOSS", "OSS"]
+        # type of auxiliary classifier \in ["W/O", "S3", "NOSS", "OSS", 'Random', 'Single']
         self.MODEL.label_assignor_type = "W/O"
         # whether to normalize feature maps from the discriminator or not
         self.MODEL.normalize_d_embed = False
@@ -128,6 +128,8 @@ class Configurations(object):
 
         # type of adversarial loss \in ["vanilla", "least_squere", "wasserstein", "hinge", "MH"]
         self.LOSS.adv_loss = "vanilla"
+        # balancing hyperparameter for label assigner
+        self.LOSS.assign_lambda = "N/A"
         # balancing hyperparameter for conditional image generation
         self.LOSS.cond_lambda = "N/A"
         # strength of conditioning loss induced by twin auxiliary classifier for generator training
@@ -345,7 +347,7 @@ class Configurations(object):
         self.MISC.no_proc_data = ["CIFAR10", "CIFAR100", "Tiny_ImageNet"]
         self.MISC.base_folders = ["checkpoints", "figures", "logs", "moments", "samples", "values"]
         self.MISC.classifier_based_GAN = ["AC", "2C", "D2DCE"]
-        self.MISC.label_assignors = ["NOSS", "OSS"]
+        self.MISC.label_assignors = ["S3", "NOSS", "OSS", "Random", "Single"]
         self.MISC.info_params = ["info_discrete_linear", "info_conti_mu_linear", "info_conti_var_linear"]
         self.MISC.cas_setting = {
             "CIFAR10": {
@@ -451,12 +453,14 @@ class Configurations(object):
             self.MODULES.d_conv2d = ops.snconv2d
             self.MODULES.d_deconv2d = ops.sndeconv2d
             self.MODULES.d_linear = ops.snlinear
-            self.MODULES.d_embedding = ops.sn_embedding
+            # self.MODULES.d_embedding = ops.sn_embedding
+            self.MODULES.d_embedding = ops.sn_embedding2
         else:
             self.MODULES.d_conv2d = ops.conv2d
             self.MODULES.d_deconv2d = ops.deconv2d
             self.MODULES.d_linear = ops.linear
-            self.MODULES.d_embedding = ops.embedding
+            # self.MODULES.d_embedding = ops.embedding
+            self.MODULES.d_embedding = ops.embedding2
 
         if self.MODEL.g_cond_mtd == "cBN" or self.MODEL.g_info_injection == "cBN" or self.MODEL.backbone == "big_resnet":
             self.MODULES.g_bn = ops.ConditionalBatchNorm2d

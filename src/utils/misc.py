@@ -124,6 +124,12 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
 
+def calc_entropy(x):
+    b = F.softmax(x, dim=1) * F.log_softmax(x, dim=1)
+    b = (-1.0 * b.sum(dim=1) / np.log(b.shape[1])).mean()
+    return b
+
+
 def accuracy(output, target, topk=(1,)):
     """Computes the precision@k for the specified values of k"""
     maxk = max(topk)
