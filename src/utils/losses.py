@@ -46,7 +46,17 @@ class CrossEntropyLoss(torch.nn.Module):
         return self.ce_loss(cls_output, label).mean()
 
 
+class MiCrossEntropyLoss(torch.nn.Module):
+    def __init__(self):
+        super(MiCrossEntropyLoss, self).__init__()
+        self.ce_loss = torch.nn.CrossEntropyLoss()
+
+    def forward(self, mi_cls_output, label, **_):
+        return self.ce_loss(mi_cls_output, label).mean()
+
+
 class SoftCrossEntropyLoss(torch.nn.Module):
+
     def __init__(self):
         super(SoftCrossEntropyLoss, self).__init__()
         self.logsoftmax = nn.LogSoftmax()

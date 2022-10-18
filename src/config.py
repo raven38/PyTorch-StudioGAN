@@ -59,7 +59,7 @@ class Configurations(object):
         self.MODEL.backbone = "resnet"
         # conditioning method of the generator \in ["W/O", "cBN", "cAdaIN"]
         self.MODEL.g_cond_mtd = "W/O"
-        # conditioning method of the discriminator \in ["W/O", "AC", "PD", "MH", "MD", "2C","D2DCE", "SPD"]
+        # conditioning method of the discriminator \in ["W/O", "AC", "PD", "MH", "MD", "2C","D2DCE", "SPD", "P2"]
         self.MODEL.d_cond_mtd = "W/O"
         # type of auxiliary classifier \in ["W/O", "TAC", "ADC"]
         self.MODEL.aux_cls_type = "W/O"

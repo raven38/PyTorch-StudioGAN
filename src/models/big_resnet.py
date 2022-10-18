@@ -320,6 +320,9 @@ class Discriminator(nn.Module):
             self.linear2 = MODULES.d_linear(in_features=self.out_dims[-1], out_features=num_classes, bias=False)
         elif self.d_cond_mtd == "PD":
             self.embedding = MODULES.d_embedding(num_classes, self.out_dims[-1])
+        elif self.d_cond_mtd == "P2":
+            self.linear2 = MODULES.d_linear(in_features=self.out_dims[-1], out_features=num_classes, bias=False)
+            self.linear_mi = MODULES.d_linear(in_features=self.out_dims[-1], out_features=num_classes, bias=False)
         elif self.d_cond_mtd in ["2C", "D2DCE"]:
             self.linear2 = MODULES.d_linear(in_features=self.out_dims[-1], out_features=d_embed_dim, bias=True)
             self.embedding = MODULES.d_embedding(num_classes, d_embed_dim)
@@ -417,6 +420,12 @@ class Discriminator(nn.Module):
                 cls_output = self.linear2(h)
             elif self.d_cond_mtd == "PD":
                 adv_output = adv_output + torch.sum(torch.mul(self.embedding(label), h), 1)
+            elif self.d_cond_mtd == "P2":
+                cls_output = self.linear2(h)
+                mi_cls_output = self.linear_mi(h)
+                # cls_output.shape == (B, self.num_classes)
+                # label == (B, self.num_classes)
+                adv_output = adv_output + torch.sum(torch.mul(cls_output, label), 1) - torch.sum(torch.mul(mi_cls_output, label), 1)
             elif self.d_cond_mtd in ["2C", "D2DCE"]:
                 embed = self.linear2(h)
                 proxy = self.embedding(label)

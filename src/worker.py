@@ -159,10 +159,14 @@ class WORKER(object):
                                                               m_p=self.LOSS.m_p,
                                                               master_rank="cuda",
                                                               DDP=self.DDP)
+        elif self.MODEL.d_cond_mtd == "P2":
+            self.cond_loss = losses.SoftCrossEntropyLoss()
+            self.cond_loss_mi = losses.MiCrossEntropyLoss()
         else: pass
 
         if self.MODEL.aux_cls_type == "TAC":
-            self.cond_loss_mi = copy.deepcopy(self.cond_loss)
+            # self.cond_loss_mi = copy.deepcopy(self.cond_loss)
+            self.cond_loss_mi = losses.MiCrossEntropyLoss()
 
         self.gen_ctlr = misc.GeneratorController(generator=self.Gen_ema if self.MODEL.apply_g_ema else self.Gen,
                                                  generator_mapping=self.Gen_ema_mapping,
@@ -346,6 +350,9 @@ class WORKER(object):
                             dis_acml_loss += self.LOSS.cond_lambda * fake_cond_loss
                         else:
                             pass
+                    elif self.MODEL.d_cond_mtd == "P2":
+                        real_cond_loss = self.cond_loss(**real_dict) + self.cond_loss_mi(**fake_dict)
+                        dis_acml_loss += self.LOSS.cond_lambda * real_cond_loss
                     else:
                         real_cond_loss = "N/A"
 
@@ -362,6 +369,8 @@ class WORKER(object):
                             real_consist_loss += self.l2_loss(real_dict["cls_output"], real_prl_dict["cls_output"])
                         elif self.MODEL.d_cond_mtd in ["2C", "D2DCE"]:
                             real_consist_loss += self.l2_loss(real_dict["embed"], real_prl_dict["embed"])
+                        elif self.MODEL.d_cond_mtd == "P2":
+                            real_consist_loss += self.l2_loss(real_dict["cls_output"], real_prl_dict["cls_output"])
                         else:
                             pass
                         dis_acml_loss += self.LOSS.cr_lambda * real_consist_loss
@@ -380,6 +389,9 @@ class WORKER(object):
                         elif self.MODEL.d_cond_mtd in ["2C", "D2DCE"]:
                             real_bcr_loss += self.l2_loss(real_dict["embed"], real_prl_dict["embed"])
                             fake_bcr_loss += self.l2_loss(fake_dict["embed"], fake_prl_dict["embed"])
+                        elif self.MODEL.d_cond_mtd == "P2":
+                            real_bcr_loss += self.l2_loss(real_dict["cls_output"], real_prl_dict["cls_output"])
+                            fake_bcr_loss += self.l2_loss(fake_dict["cls_output"], fake_prl_dict["cls_output"])
                         else:
                             pass
                         dis_acml_loss += self.LOSS.real_lambda * real_bcr_loss + self.LOSS.fake_lambda * fake_bcr_loss
@@ -392,6 +404,8 @@ class WORKER(object):
                             fake_zcr_loss += self.l2_loss(fake_dict["cls_output"], fake_eps_dict["cls_output"])
                         elif self.MODEL.d_cond_mtd in ["2C", "D2DCE"]:
                             fake_zcr_loss += self.l2_loss(fake_dict["embed"], fake_eps_dict["embed"])
+                        elif self.MODEL.d_cond_mtd == "P2":
+                            fake_zcr_loss += self.l2_loss(fake_dict["cls_output"], fake_eps_dict["cls_output"])
                         else:
                             pass
                         dis_acml_loss += self.LOSS.d_lambda * fake_zcr_loss
