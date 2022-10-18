@@ -318,20 +318,20 @@ class WORKER(object):
                     # calculate label assignor_loss
                     if self.MODEL.label_assignor_type == 'NOSS':
                         mask = torch.nonzero(real_labels != -1).squeeze()
-                        ratio = mask.shape[0] / self.batch_size
-                        real_ce = self.gce_loss(real_dict['cls_assign'].index_select(0, mask), real_labels.index_select(0, mask))
-                        fake_ce = self.gce_loss(fake_dict['cls_assign'], fake_labels) * ratio
-                        dis_acml_loss += self.assign_lambda * (real_ce + fake_ce)
+                        ratio = mask.shape[0] / self.OPTIMIZATION.batch_size
+                        real_ce = self.assignor_loss(real_dict['cls_assign'].index_select(0, mask), real_labels.index_select(0, mask))
+                        fake_ce = self.assignor_loss(fake_dict['cls_assign'], fake_labels) * ratio
+                        dis_acml_loss += self.LOSS.assign_lambda * (real_ce + fake_ce)
                     elif self.MODEL.label_assignor_type == 'OSS':
                         mask = torch.nonzero(real_labels != -1).squeeze()
                         ratio = mask.shape[0] / self.OPTIMIZATION.batch_size
-                        real_ce = self.ce_loss(real_dict['cls_assign'].index_select(0, mask), real_labels.index_select(0, mask))
-                        fake_ce = self.ce_loss(fake_dict['cls_assign'], fake_labels) * ratio
+                        real_ce = self.assignor_loss(real_dict['cls_assign'].index_select(0, mask), real_labels.index_select(0, mask))
+                        fake_ce = self.assignor_loss(fake_dict['cls_assign'], fake_labels) * ratio
                         ent = self.ent_loss(real_dict['cls_assign']) + self.ent_loss(fake_dict['cls_assign']) * ratio
-                        dis_acml_loss += self.assign_lambda * ((real_ce + fake_ce) - ent)
+                        dis_acml_loss += self.LOSS.assign_lambda * ((real_ce + fake_ce) - ent)
                     elif self.MODEL.label_assignor_type == 'S3':
                         mask = torch.nonzero(real_labels != -1).squeeze()
-                        real_ce = self.ce_loss(real_dict['cls_assign'].index_select(0, mask), real_labels.index_select(0, mask))
+                        real_ce = self.assignor_loss(real_dict['cls_assign'].index_select(0, mask), real_labels.index_select(0, mask))
                         dis_acml_loss += self.LOSS.assign_lambda * real_ce
 
                     # calculate class conditioning loss defined by "MODEL.d_cond_mtd"

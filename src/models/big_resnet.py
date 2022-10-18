@@ -356,6 +356,7 @@ class Discriminator(nn.Module):
             embed, proxy, cls_output = None, None, None
             mi_embed, mi_proxy, mi_cls_output = None, None, None
             info_discrete_c_logits, info_conti_mu, info_conti_var = None, None, None
+            cls_assign = None
             h = x
             for index, blocklist in enumerate(self.blocks):
                 for block in blocklist:
@@ -389,11 +390,11 @@ class Discriminator(nn.Module):
 
             # make class labels odd (for fake) or even (for real) for ADC
             if self.aux_cls_type == "ADC":
-                if label.shape == (len(label_), self.n_classes):
+                if label.shape == (len(label_), self.num_classes):
                     if adc_fake:
-                        label = torch.stack([torch.zeros((len(label_), self.n_classes)), label]).transpose(1, 2, 0).view(len(label_),self.n_classes*2)
+                        label = torch.stack([torch.zeros((len(label_), self.num_classes), device=label.device), label]).permute(1, 2, 0).contiguous().view(len(label_), self.num_classes*2)
                     else:
-                        label = torch.stack([label, torch.zeros((len(label_), self.n_classes))]).transpose(1, 2, 0).view(len(label_),self.n_classes*2)
+                        label = torch.stack([label, torch.zeros((len(label_), self.num_classes), device=label.device)]).permute(1, 2, 0).contiguous().view(len(label_), self.num_classes*2)
                 else:
                     if adc_fake:
                         label = label*2 + 1
